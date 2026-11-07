@@ -1,0 +1,55 @@
+{% extends "base.html" %}{% block title %}Entry scanner{% endblock %}{% block content %}
+<section class="panel"><p class="eyebrow">GATE CONTROL</p><h1 class="smalltitle">Entry scanner</h1>
+<p class="muted">Entered: <b id="nIn">{{ n_in }}</b> / Approved tickets: <b>{{ n_ok }}</b></p>
+<div id="verdict" class="verdict idle"><strong>READY</strong><span>Tap “Start camera”, then point at the ticket QR.</span></div>
+<div id="reader" class="reader"></div>
+<div class="scan-controls"><button id="start" class="btn primary big">Start camera</button><button id="stop" class="btn secondary" disabled>Stop</button></div>
+<p class="muted small" id="camhelp">Camera needs the secure (https://) website and your permission. If it fails, use the manual box below.</p>
+<div class="manual"><h2>Camera not working? Type the ticket number</h2>
+<div class="filters"><input id="manualRef" placeholder="APT-XXXXXXXX" autocapitalize="characters" autocomplete="off"><button id="lookup" class="btn secondary">Look up</button></div>
+<div id="manualResult" class="muted"></div><button id="admit" class="btn primary big" style="display:none">Admit &amp; mark as used</button></div>
+<div class="manual"><h2>Recent scans</h2><ul id="recent" class="recent"></ul></div></section>
+{% endblock %}
+{% block scripts %}
+<script>
+const csrf = {{ csrf_token()|tojson }};
+const V = document.getElementById('verdict');
+const recent = document.getElementById('recent');
+let scanner=null, running=false, busy=false, pendingRef=null;
+function verdict(cls, title, msg){ V.className='verdict '+cls; V.innerHTML='<strong></strong><span></span>'; V.querySelector('strong').textContent=title; V.querySelector('span').textContent=msg||''; }
+function addRecent(ok, text){ const li=document.createElement('li'); li.className=ok?'ok':'no'; li.textContent=new Date().toLocaleTimeString()+'  '+text; recent.prepend(li); while(recent.children.length>12) recent.lastChild.remove(); }
+function beep(ok){ try{ if(navigator.vibrate) navigator.vibrate(ok?[120]:[300,120,300]); const a=new (window.AudioContext||window.webkitAudioContext)(); const o=a.createOscillator(); o.frequency.value=ok?880:220; o.connect(a.destination); o.start(); setTimeout(()=>{o.stop();a.close()}, ok?150:450);}catch(e){} }
+async function post(url, body){ const r=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json','X-CSRF-Token':csrf},body:JSON.stringify(body)}); let d={}; try{d=await r.json()}catch(e){} return {r,d}; }
+async function handleToken(text){
+  if(busy) return; busy=true;
+  try{
+    const {r,d}=await post('{{ url_for("api_check_in") }}',{token:text});
+    const ok=r.ok&&d.ok; verdict(ok?'good':'bad', d.result||'ERROR', d.message||''); beep(ok); addRecent(ok,(d.result||'ERROR')+' — '+(d.message||''));
+    if(ok) document.getElementById('nIn').textContent=(+document.getElementById('nIn').textContent+1);
+  }catch(e){ verdict('bad','NETWORK ERROR','Check your internet and scan again.'); }
+  setTimeout(()=>{busy=false},2500);
+}
+function loadLib(){ return new Promise(res=>{ if(window.Html5Qrcode) return res(true);
+  const srcs=['{{ url_for("static",filename="vendor/html5-qrcode.min.js") }}','https://cdn.jsdelivr.net/npm/html5-qrcode@2.3.8/html5-qrcode.min.js','https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js'];
+  (function next(i){ if(i>=srcs.length) return res(false); const s=document.createElement('script'); s.src=srcs[i]; s.onload=()=>res(!!window.Html5Qrcode); s.onerror=()=>next(i+1); document.head.appendChild(s); })(0); }); }
+document.getElementById('start').onclick=async()=>{
+  verdict('idle','STARTING…','Allow camera access if asked.');
+  if(!await loadLib()){ verdict('bad','SCANNER LIBRARY NOT LOADED','Check internet, or use the manual ticket number below.'); return; }
+  try{
+    scanner=scanner||new Html5Qrcode('reader',{useBarCodeDetectorIfSupported:true,formatsToSupport:[Html5QrcodeSupportedFormats.QR_CODE]});
+    await scanner.start({facingMode:'environment'},{fps:10,qrbox:(w,h)=>{const s=Math.floor(Math.min(w,h)*0.8);return{width:s,height:s}}},handleToken,()=>{});
+    running=true; start.disabled=true; stop.disabled=false; verdict('idle','READY','Point the camera at a ticket QR.');
+  }catch(e){ verdict('bad','CAMERA NOT AVAILABLE','Allow camera permission (and use https://). Or use the manual box below.'); }
+};
+document.getElementById('stop').onclick=async()=>{ if(scanner&&running){await scanner.stop();running=false;} start.disabled=false; stop.disabled=true; verdict('idle','STOPPED','Tap “Start camera” to scan again.'); };
+const start=document.getElementById('start'), stop=document.getElementById('stop'), admit=document.getElementById('admit'), mres=document.getElementById('manualResult');
+document.getElementById('lookup').onclick=async()=>{
+  const ref=document.getElementById('manualRef').value.trim().toUpperCase(); admit.style.display='none'; pendingRef=null;
+  if(!ref){mres.textContent='Enter the ticket number printed on the ticket (APT-…).';return;}
+  const {r,d}=await post('{{ url_for("api_manual_lookup") }}',{reference:ref}); mres.textContent=(d.result||'ERROR')+' — '+(d.message||'');
+  mres.className = r.ok? 'goodtxt':'badtxt'; if(r.ok&&d.ok){ pendingRef=ref; admit.style.display='block'; }
+};
+admit.onclick=async()=>{ if(!pendingRef) return; const {r,d}=await post('{{ url_for("api_manual_checkin") }}',{reference:pendingRef}); const ok=r.ok&&d.ok;
+  verdict(ok?'good':'bad',d.result||'ERROR',d.message||''); addRecent(ok,(d.result||'ERROR')+' — '+(d.message||'')); beep(ok); mres.textContent=''; admit.style.display='none'; pendingRef=null;
+  if(ok) document.getElementById('nIn').textContent=(+document.getElementById('nIn').textContent+1); };
+</script>{% endblock %}

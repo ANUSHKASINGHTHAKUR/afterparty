@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0d0b10">
+<title>{% block title %}Afterparty 2026–27{% endblock %}</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head><body>
+{% if cfg.DEMO_MODE %}<div class="demo-banner">TEST MODE — sample data only. No real payments. Not for the public.</div>{% endif %}
+<header class="topbar"><a class="brand" href="{{ url_for('index') }}">AFTERPARTY <span>2026–27</span></a>
+<nav>{% if session.get('admin_id') %}<a href="{{ url_for('admin_dashboard') }}">Dashboard</a><a href="{{ url_for('scanner') }}">Scanner</a>
+<form method="post" action="{{ url_for('admin_logout') }}" class="inline"><input type="hidden" name="_csrf" value="{{ csrf_token() }}"><button class="linkbtn">Logout</button></form>
+{% else %}<a href="{{ url_for('admin_login') }}">Organiser login</a>{% endif %}</nav></header>
+<main class="container">
+{% with messages = get_flashed_messages(with_categories=true) %}{% if messages %}<div class="flashes">{% for category,message in messages %}<div class="flash {{ category }}">{{ message }}</div>{% endfor %}</div>{% endif %}{% endwith %}
+{% block content %}{% endblock %}
+</main>
+<footer>Afterparty 2026–27 · 4 December 2026 · Questions? <a href="https://wa.me/{{ cfg.ORGANISER_WA }}">WhatsApp the organiser: {{ cfg.ORGANISER_PHONE }}</a></footer>
+{% block scripts %}{% endblock %}
+</body></html>

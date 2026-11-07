@@ -1,0 +1,19 @@
+BEFORE PUBLIC LAUNCH - CHECKLIST
+================================
+[ ] 1. Confirm the payee. Your QR pays the person named in the QR file (DEVANSH TOMAR, UPI id ending @axl).
+       Make sure that person agrees to receive all payments and will share the UPI/bank statement with you.
+       If it is wrong, replace static/phonepe-qr.jpg and fix PAYEE_NAME in .env.
+[ ] 2. Choose hosting with HTTPS and a disk that is not erased. Put the site online (README > Publish online).
+[ ] 3. In .env on the host: strong ADMIN_PASSWORD (10+ characters) and COOKIE_SECURE=1.
+[ ] 4. Open the public link on an Android phone AND an iPhone. Register with a test name and a test screenshot.
+[ ] 5. Sign in to /admin on your phone, approve the test, view the ticket. Is the name where you want it?
+       (If not, send me your marked reference image - the position is one setting.)
+[ ] 6. Open /admin/scanner on a phone, allow the camera, scan the test ticket from another screen:
+       first scan GREEN, second scan RED "ALREADY USED". Test on Android AND iPhone.
+[ ] 7. Start clean before real sales: remove test registrations (stop the site, delete the "data" folder on
+       the host, start again) - do this BEFORE the first real registration.
+[ ] 8. Check the organiser WhatsApp number +91 9627723371 is correct and active.
+[ ] 9. Decide who approves payments and how often. Nobody should approve without seeing the money arrive.
+[ ] 10. Download a Backup ZIP from the dashboard daily. Keep a copy on Google Drive or a pen drive.
+[ ] 11. Event day: charge 2+ phones, test mobile data at the gate, keep an Export CSV list as a fallback.
+[ ] 12. Share ONLY the public home page link with attendees - never the /admin link.

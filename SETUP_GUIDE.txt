@@ -1,0 +1,61 @@
+AFTERPARTY 2026-27 - SIMPLE SETUP GUIDE
+=======================================
+(The longer version is README.md. You do not need to edit any code.)
+
+WHAT YOU GET
+- A website where people pay by UPI, upload a screenshot + UTR, and register.
+- An organiser page (use it on your phone) where you approve/reject and view tickets.
+- After you approve, the person gets a personalised ticket with their name and a unique QR.
+- A gate scanner page: first scan = VALID, second scan = ALREADY USED.
+
+FILES YOU MAY WANT TO CHANGE (all optional)
+1. .env                       -> your admin login and settings (START_HERE.bat creates it for you)
+2. static/phonepe-qr.jpg      -> the payment QR (already your official QR)
+3. static/ticket-original.jpg -> the ticket artwork (already your original)
+Nothing else needs touching.
+
+--------------------------------------------------------------
+A) TRY IT ON YOUR LAPTOP (Windows)
+--------------------------------------------------------------
+1. Install Python 3.10 or newer from python.org. TICK "Add Python to PATH".
+2. Unzip the project folder (right-click > Extract All).
+3. Double-click START_HERE.bat. First time it installs things (needs internet),
+   then asks you to choose an admin username and password.
+4. Your browser opens http://127.0.0.1:5000  (works ONLY on your laptop - it is not public).
+5. Organiser page: http://127.0.0.1:5000/admin
+
+Want to play with fake data first? Double-click START_TEST_MODE.bat
+(login: demo / demo-password-123, then press "Add 3 sample registrations").
+
+--------------------------------------------------------------
+B) PUT IT ONLINE (so phones can use it)
+--------------------------------------------------------------
+See README.md, section "Publish online". Short version:
+- You need a host with HTTPS and a disk that is NOT erased (PythonAnywhere works; steps in README).
+- Cost: a free plan exists but is limited; a paid plan (roughly $5-10 per month, check their pricing page)
+  is safer while tickets are on sale.
+- Set COOKIE_SECURE=1 in .env once the site is on https://.
+- Camera scanning on phones ONLY works on the https:// website.
+NOTE: The website is NOT online yet. A public link exists only after you (or I, with your hosting account) do this.
+
+--------------------------------------------------------------
+C) WHEN SELLING TICKETS (on your phone)
+--------------------------------------------------------------
+1. Open https://YOUR-WEBSITE/admin and sign in.
+2. Open your PhonePe / bank app and check the money really arrived for that UTR.
+3. Tap Approve (or Reject). Approve = ticket and unique QR are created automatically.
+4. The buyer sees the ticket on their private link. If they lose the link, they can use
+   "Find my ticket" on the home page (reference + mobile number), or you tap "Download" and send it on WhatsApp.
+5. Tap Backup on the dashboard every day and save the ZIP somewhere safe.
+
+--------------------------------------------------------------
+D) AT THE GATE (on a phone)
+--------------------------------------------------------------
+1. Open https://YOUR-WEBSITE/admin/scanner, sign in, tap "Start camera", allow the camera.
+2. Point at the ticket QR (phone screen or printout).
+   GREEN  "VALID - ENTRY ALLOWED"            -> let them in (ticket is now marked USED)
+   RED    "ALREADY USED - ENTRY DENIED"      -> do not allow
+   RED    "INVALID TICKET" / "NOT APPROVED"  -> do not allow
+3. Camera problem? Type the ticket number (APT-XXXXXXXX, printed on the ticket) in the box,
+   tap Look up, then "Admit & mark as used".
+4. Test the scanner on your own phone BEFORE event day with a test ticket.

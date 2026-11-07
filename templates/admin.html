@@ -1,0 +1,41 @@
+{% extends "base.html" %}{% block title %}Dashboard · Afterparty{% endblock %}{% block content %}
+<div class="dashhead"><div><p class="eyebrow">ORGANISER CONTROL ROOM</p><h1 class="smalltitle">Registrations</h1></div>
+<div class="btnrow"><a class="btn primary" href="{{ url_for('scanner') }}">Open scanner</a><a class="btn secondary" href="{{ url_for('export_csv') }}">Export CSV</a><a class="btn secondary" href="{{ url_for('backup') }}">Backup</a></div></div>
+<div class="stats">
+<a href="?status=Pending"><b>{{ counts.Pending }}</b><span>Pending</span></a>
+<a href="?status=Approved"><b>{{ counts.Approved }}</b><span>Approved</span></a>
+<a href="?status=Rejected"><b>{{ counts.Rejected }}</b><span>Rejected</span></a>
+<a href="?entry=used"><b>{{ counts.Entered }}</b><span>Entered</span></a></div>
+{% if cfg.DEMO_MODE %}<form method="post" action="{{ url_for('demo_seed') }}"><input type="hidden" name="_csrf" value="{{ csrf_token() }}"><button class="btn secondary">Add 3 sample registrations</button></form>{% endif %}
+<form method="get" class="filters"><input name="q" value="{{ q }}" placeholder="Search name, phone, reference, UTR"><select name="status"><option value="">All</option>{% for s in ['Pending','Approved','Rejected'] %}<option {{ 'selected' if status==s else '' }}>{{ s }}</option>{% endfor %}</select>
+<select name="entry"><option value="">Entry: any</option><option value="used" {{ 'selected' if entry=='used' }}>Entered</option><option value="unused" {{ 'selected' if entry=='unused' }}>Approved, not entered</option></select><button class="btn secondary">Search</button></form>
+<p class="muted small">{{ total }} result{{ '' if total==1 else 's' }}. Times are in IST. <b>Approve only after you see the money in the payee's UPI/bank account.</b></p>
+<div class="cards">
+{% for r in regs %}
+<article class="card">
+  <a class="thumb" href="{{ url_for('proof',reg_id=r.id) }}" target="_blank" rel="noopener"><img loading="lazy" src="{{ url_for('proof',reg_id=r.id) }}" alt="Payment proof"><span>View proof</span></a>
+  <div class="cardbody">
+    <div class="rowtop"><b class="nm">{{ r.full_name }}</b><span class="pill {{ r.status|lower }}">{{ r.status }}</span>{% if r.checked_in %}<span class="pill used">ENTERED</span>{% elif r.status=='Approved' %}<span class="pill ready">NOT ENTERED</span>{% endif %}</div>
+    <small><a href="tel:{{ r.phone }}">{{ r.phone }}</a> · <span class="mono">{{ r.reference }}</span></small>
+    <small>UTR: <b class="mono">{{ r.utr }}</b>{% if r.utr in dups %} <span class="pill rejected">DUPLICATE UTR</span>{% endif %}</small>
+    <small>Submitted {{ r.created_at|ist }}</small>
+    {% if r.ticket_reference %}<small>Ticket <b class="mono">{{ r.ticket_reference }}</b>{% if r.checked_in %} · entered {{ r.checked_in_at|ist }}{% endif %}</small>{% endif %}
+    {% if r.reject_reason %}<small>Reason: {{ r.reject_reason }}</small>{% endif %}
+    <div class="actions">
+    {% if r.status=='Pending' %}
+      <form method="post" action="{{ url_for('review',reg_id=r.id) }}" onsubmit='return confirm({{ ("Is the money for UTR " ~ r.utr ~ " really in the payee account?\nApprove and create the ticket for " ~ r.full_name ~ "?")|tojson }})'><input type="hidden" name="_csrf" value="{{ csrf_token() }}"><input type="hidden" name="action" value="approve"><button class="btn tiny primary">Approve</button></form>
+      <form method="post" action="{{ url_for('review',reg_id=r.id) }}" onsubmit="var t=prompt('Reason for rejecting (optional, shown to the attendee):','');if(t===null)return false;this.reason.value=t;return true"><input type="hidden" name="_csrf" value="{{ csrf_token() }}"><input type="hidden" name="action" value="reject"><input type="hidden" name="reason"><button class="btn tiny danger">Reject</button></form>
+    {% elif r.status=='Approved' %}
+      <a class="btn tiny secondary" target="_blank" href="{{ url_for('admin_ticket',reg_id=r.id,view=1) }}">View ticket</a>
+      <a class="btn tiny secondary" href="{{ url_for('admin_ticket',reg_id=r.id) }}">Download</a>
+      {% if not r.checked_in %}<form method="post" action="{{ url_for('review',reg_id=r.id) }}" onsubmit="return confirm('Cancel this ticket? Its QR will stop working.')"><input type="hidden" name="_csrf" value="{{ csrf_token() }}"><input type="hidden" name="action" value="revoke"><button class="btn tiny danger">Cancel ticket</button></form>{% endif %}
+    {% else %}
+      <form method="post" action="{{ url_for('review',reg_id=r.id) }}"><input type="hidden" name="_csrf" value="{{ csrf_token() }}"><input type="hidden" name="action" value="reopen"><button class="btn tiny secondary">Reopen</button></form>
+    {% endif %}
+    </div>
+  </div>
+</article>
+{% else %}<p class="empty">No registrations found.</p>{% endfor %}
+</div>
+{% if pages>1 %}<div class="pager">{% if page>1 %}<a class="btn secondary tiny" href="?q={{ q|urlencode }}&status={{ status }}&entry={{ entry }}&page={{ page-1 }}">← Newer</a>{% endif %}<span>Page {{ page }} / {{ pages }}</span>{% if page<pages %}<a class="btn secondary tiny" href="?q={{ q|urlencode }}&status={{ status }}&entry={{ entry }}&page={{ page+1 }}">Older →</a>{% endif %}</div>{% endif %}
+{% endblock %}

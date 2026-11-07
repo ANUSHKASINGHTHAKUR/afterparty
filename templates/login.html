@@ -1,0 +1,7 @@
+{% extends "base.html" %}{% block title %}Organiser login{% endblock %}{% block content %}
+<section class="panel narrow"><p class="eyebrow">RESTRICTED ACCESS</p><h1 class="smalltitle">Organiser login</h1>
+{% if cfg.DEMO_MODE %}<div class="notice">Test mode login: <b>demo</b> / <b>demo-password-123</b></div>{% endif %}
+<form method="post" class="stack"><input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+<label>Username<input name="username" autocomplete="username" autocapitalize="none" required></label>
+<label>Password<input type="password" name="password" autocomplete="current-password" required></label>
+<button class="btn primary big">Sign in</button></form></section>{% endblock %}

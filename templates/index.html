@@ -1,0 +1,42 @@
+{% extends "base.html" %}{% block title %}Register · Afterparty 2026–27{% endblock %}{% block content %}
+<section class="hero">
+  <div class="hero-copy">
+    <p class="eyebrow">ONE NIGHT · ONE BIG AFTERPARTY</p>
+    <h1>AFTERPARTY<br><span>2026–27</span></h1>
+    <p class="lead">Games · solo performances · fun dance · exciting gifts · unlimited food.</p>
+    <div class="event-meta">
+      <div><small>DATE</small><b>4 Dec 2026</b></div>
+      <div><small>TIME</small><b>2:00 PM – 10:00 PM</b></div>
+      <div><small>VENUE</small><b>Sundaram, Tikoniya</b></div>
+      <div><small>TICKET</small><b>₹1,300</b></div>
+    </div>
+    <a class="btn primary big" href="#register">Get my ticket</a>
+  </div>
+  <img src="{{ url_for('static',filename='ticket-original.jpg') }}" alt="Afterparty ticket artwork" class="hero-art">
+</section>
+
+<ol class="steps"><li><b>1</b> Pay ₹1,300 by UPI</li><li><b>2</b> Enter name, UTR &amp; screenshot</li><li><b>3</b> Wait for approval</li><li><b>4</b> Download your ticket</li></ol>
+
+<div class="grid two" id="register">
+<section class="panel"><p class="eyebrow">STEP 1 · PAY</p><h2>Scan &amp; pay ₹1,300</h2>
+<p>Open any UPI app (PhonePe, Google Pay, Paytm…), scan this QR and pay <b>exactly ₹1,300</b>.</p>
+{% if cfg.PAYEE_NAME %}<p class="payee">The name shown in your UPI app should be: <b>{{ cfg.PAYEE_NAME }}</b></p>{% endif %}
+<img class="payment-qr" src="{{ url_for('static',filename='phonepe-qr.jpg') }}" alt="Official PhonePe payment QR">
+<p class="muted small">After paying, note the <b>UTR / Transaction ID</b> from your payment screen. Organisers check the real payment before approving — a screenshot alone does not approve a ticket.</p></section>
+
+<section class="panel"><p class="eyebrow">STEP 2 · REGISTER</p><h2>Your details</h2>
+{% if not cfg.REGISTRATION_OPEN %}<div class="notice">Registrations are closed. Please contact the organiser.</div>{% else %}
+<form method="post" action="{{ url_for('register') }}" enctype="multipart/form-data" class="stack">
+<input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+<label>Full name <small>(English letters — this is printed on your ticket)</small><input name="full_name" maxlength="40" required autocomplete="name" placeholder="e.g. Aarav Sharma"></label>
+<label>Mobile number<input name="phone" type="tel" inputmode="numeric" maxlength="16" required autocomplete="tel" placeholder="10-digit mobile number"></label>
+<label>UTR / Transaction ID<input name="utr" maxlength="30" required autocapitalize="characters" autocomplete="off" placeholder="From your UPI payment screen"></label>
+<label>Payment screenshot<input type="file" name="proof" accept="image/jpeg,image/png,image/webp" required><small>JPG, PNG or WEBP · up to 8 MB</small></label>
+<label class="check"><input type="checkbox" required> <span>I have paid ₹1,300. I understand my ticket is issued only after the organisers confirm the payment.</span></label>
+<button class="btn primary big">Submit registration</button></form>{% endif %}</section></div>
+
+<section class="panel" id="find" style="margin-top:18px"><p class="eyebrow">ALREADY REGISTERED?</p><h2>Find my ticket</h2>
+<p>Lost your private link? Enter your registration reference (like AP-1A2B3C4D) and mobile number.</p>
+<form method="post" action="{{ url_for('find') }}" class="filters"><input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+<input name="reference" placeholder="AP-XXXXXXXX" required autocapitalize="characters"><input name="phone" type="tel" placeholder="Mobile number" required><button class="btn secondary">Find</button></form></section>
+{% endblock %}

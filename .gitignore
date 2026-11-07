@@ -1,0 +1,54 @@
+# ==============================================================================
+# Git Ignore for Afterparty Ticket Management System
+# ==============================================================================
+
+# Environment variables & secrets (CRITICAL: NEVER COMMIT SECRETS)
+.env
+.env.local
+.env.*.local
+*.env
+secret_key.txt
+**/secret_key.txt
+
+# Python Virtual Environments
+.venv/
+venv/
+env/
+ENV/
+**/.venv/
+**/venv/
+**/env/
+
+# SQLite Databases & User Uploads (Attendee data, proofs, tickets)
+data/
+data-demo/
+**/data/
+**/data-demo/
+*.sqlite3
+*.sqlite
+*.db
+
+# Python Bytecode & Cache
+__pycache__/
+**/__pycache__/
+*.py[cod]
+*$py.class
+*.pyd
+
+# Archives & Temporary Bundles
+*.zip
+*.tar.gz
+*.rar
+*.7z
+
+# Original extraction folders
+Afterparty_2026-27_Ticket_System_v2/
+
+# Operating System & Editor Metadata
+.DS_Store
+Thumbs.db
+desktop.ini
+.vscode/
+.idea/
+*.swp
+*.swo

@@ -1,0 +1,20 @@
+{% extends "base.html" %}{% block title %}Your registration · Afterparty{% endblock %}{% block content %}
+<section class="panel narrow"><p class="eyebrow">YOUR REGISTRATION</p>
+<h1 class="smalltitle">{% if new %}Thank you, {{ reg.full_name }}!{% else %}{{ reg.full_name }}{% endif %}</h1>
+<p>Reference: <strong class="mono">{{ reg.reference }}</strong></p>
+<div class="status {{ reg.status|lower }}">{{ reg.status|upper }}</div>
+{% if reg.status == "Pending" %}
+<p>We received your payment details. An organiser will check the payment and approve your ticket. Come back to this page later — it updates automatically.</p>
+<script>setTimeout(function(){location.reload()},60000)</script>
+{% elif reg.status == "Rejected" %}
+<p>This registration was not approved.{% if reg.reject_reason %} Reason: <b>{{ reg.reject_reason }}</b>.{% endif %} If you think this is a mistake, message the organiser: <a href="https://wa.me/{{ cfg.ORGANISER_WA }}">WhatsApp {{ cfg.ORGANISER_PHONE }}</a>.</p>
+{% else %}
+<p>Your payment is confirmed. Download your ticket and show its QR code at the gate.</p>
+<img class="ticket-preview" src="{{ url_for('ticket_download', token=token, view=1) }}" alt="Your Afterparty ticket">
+<a class="btn primary big" href="{{ url_for('ticket_download', token=token) }}">Download ticket (PNG)</a>
+<p class="muted small">Ticket no. <b class="mono">{{ reg.ticket_reference }}</b>. The QR works for one entry only — please don't share the image.</p>
+{% endif %}
+<hr>
+<p class="muted small"><b>Save this page.</b> This is your private link — anyone who has it can see your ticket:</p>
+<div class="copybox"><input id="lnk" readonly value="{{ link }}"><button class="btn secondary" type="button" onclick="var i=document.getElementById('lnk');i.select();navigator.clipboard&&navigator.clipboard.writeText(i.value);this.textContent='Copied'">Copy</button></div>
+</section>{% endblock %}
